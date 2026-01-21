@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { TbCannabisFilled } from "react-icons/tb";
+import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 import './App.css';
 
 function App() {
@@ -13,6 +14,37 @@ function App() {
     zona: '',
     precio: 0
   });
+  const [cannabisPhrase, setCannabisPhrase] = useState('');
+  const [showPhrase, setShowPhrase] = useState(false);
+  const carouselRef = useRef(null);
+
+  const phrases = [
+    "¿Armamos uno?",
+    "Hora de enrolar",
+    "Haciendo un paisano",
+    "Dale, enrolá",
+    "¿Un toque?",
+    "Preparando el verde",
+    "¿Fumamos?",
+    "Ndeee",
+    "Tenes un tuco?"
+  ];
+
+  useEffect(() => {
+    if (!chatOpen) {
+      const showPhraseInterval = setInterval(() => {
+        const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+        setCannabisPhrase(randomPhrase);
+        setShowPhrase(true);
+        
+        setTimeout(() => {
+          setShowPhrase(false);
+        }, 3000);
+      }, 8000);
+
+      return () => clearInterval(showPhraseInterval);
+    }
+  }, [chatOpen]);
 
   const productos = [
     {
@@ -280,6 +312,20 @@ function App() {
     }, 1000);
   };
 
+  const scrollCarousel = (direction) => {
+    if (carouselRef.current) {
+      const scrollAmount = 390; // ancho de tarjeta + gap
+      const newScrollPosition = direction === 'left' 
+        ? carouselRef.current.scrollLeft - scrollAmount
+        : carouselRef.current.scrollLeft + scrollAmount;
+      
+      carouselRef.current.scrollTo({
+        left: newScrollPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
     <div className="app">
       <div className="bg-animation">
@@ -301,98 +347,120 @@ function App() {
       </header>
       
       <div className="container">        
-        <div className="products">
-          {productos.map((producto, index) => (
-            <div key={index} className="product-card">
-              <span className="product-badge">
-                <TbCannabisFilled className="badge-icon" />
-                {producto.badge}
-              </span>
-              <h3 className="product-name">{producto.nombre}</h3>
-              <div className="product-rating">{producto.rating}</div>
-              <div className="product-price">{producto.precio}</div>
-              <p className="product-details">{producto.detalles}</p>
-              <button className="btn-contact" onClick={() => contactar(producto.nombre)}>
-                Consultar
-              </button>
-            </div>
-          ))}
-        </div>
-        
-        <div className="contact-section">
-          <h2>CONTACTO</h2>
-          <p>Realiza tu pedido directamente desde nuestra plataforma</p>
+        <div className="carousel-wrapper">
+          <button className="carousel-btn carousel-btn-left" onClick={() => scrollCarousel('left')}>
+            <IoChevronBack />
+          </button>
           
-          {!chatOpen && (
-            <div className="chat-btn-container">
-              <button className="btn-new-chat" onClick={openChat}>
-                Iniciar Conversación
-              </button>
-            </div>
-          )}
-          
-          {chatOpen && (
-            <div className="chat-container active">
-              <div className="chat-header">
-                <div className="chat-status">
-                  <span className="status-dot"></span>
-                  <span>Bot de Yupi en línea</span>
-                </div>
-                <button className="btn-close-chat" onClick={closeChat}>
-                  Cerrar
+          <div className="products" ref={carouselRef}>
+            {productos.map((producto, index) => (
+              <div key={index} className="product-card">
+                <span className="product-badge">
+                  <TbCannabisFilled className="badge-icon" />
+                  {producto.badge}
+                </span>
+                <h3 className="product-name">{producto.nombre}</h3>
+                <div className="product-rating">{producto.rating}</div>
+                <div className="product-price">{producto.precio}</div>
+                <p className="product-details">{producto.detalles}</p>
+                <button className="btn-contact" onClick={() => contactar(producto.nombre)}>
+                  Consultar
                 </button>
               </div>
-              
-              <div className="chat-messages">
-                {messages.map((msg, index) => (
-                  <div key={index} className={`message ${msg.type}`}>
-                    <div className="message-content">
-                      <div style={{ whiteSpace: 'pre-line' }}>{msg.text}</div>
-                      <div className="message-time">{msg.time}</div>
-                    </div>
-                    {msg.options && msg.options.length > 0 && (
-                      <div className="chat-options">
-                        {msg.options.map((opt, i) => (
-                          <button 
-                            key={i} 
-                            className="option-btn" 
-                            onClick={() => handleOption(opt.action)}
-                          >
-                            {opt.text}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-                {showTyping && (
-                  <div className="typing-indicator active">
-                    <div className="typing-dots">
-                      <span></span>
-                      <span></span>
-                      <span></span>
-                    </div>
+            ))}
+          </div>
+          
+          <button className="carousel-btn carousel-btn-right" onClick={() => scrollCarousel('right')}>
+            <IoChevronForward />
+          </button>
+        </div>
+        
+      
+      </div>
+      
+      {!chatOpen && (
+        <>
+          {showPhrase && (
+            <div className="cannabis-phrase">
+              {cannabisPhrase}
+            </div>
+          )}
+          <button className="floating-chat-btn" onClick={openChat}>
+            <div className="cannabis-with-eyes">
+              <TbCannabisFilled className="cannabis-base" />
+              <div className="face">
+                <div className="eyes">
+                  <div className="pupil pupil-left"></div>
+                  <div className="pupil pupil-right"></div>
+                </div>
+                <div className="nose"></div>
+              </div>
+            </div>
+          </button>
+        </>
+      )}
+      
+      {/* Widget del chat */}
+      {chatOpen && (
+        <div className="chat-widget">
+          <div className="chat-header">
+            <div className="chat-status">
+              <span className="status-dot"></span>
+              <span>Bot de Yupi en línea</span>
+            </div>
+            <button className="btn-close-chat" onClick={closeChat}>
+              ✕
+            </button>
+          </div>
+          
+          <div className="chat-messages">
+            {messages.map((msg, index) => (
+              <div key={index} className={`message ${msg.type}`}>
+                <div className="message-content">
+                  <div style={{ whiteSpace: 'pre-line' }}>{msg.text}</div>
+                  <div className="message-time">{msg.time}</div>
+                </div>
+                {msg.options && msg.options.length > 0 && (
+                  <div className="chat-options">
+                    {msg.options.map((opt, i) => (
+                      <button 
+                        key={i} 
+                        className="option-btn" 
+                        onClick={() => handleOption(opt.action)}
+                      >
+                        {opt.text}
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
-              
-              <div className="chat-input-container">
-                <input 
-                  type="text" 
-                  className="chat-input" 
-                  placeholder="Escribe tu mensaje..."
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                />
-                <button className="chat-send-btn" onClick={sendMessage}>
-                  Enviar
-                </button>
+            ))}
+            {showTyping && (
+              <div className="typing-indicator active">
+                <div className="typing-dots">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
+          
+          <div className="chat-input-container">
+            <input 
+              type="text" 
+              className="chat-input" 
+              placeholder="Escribe tu mensaje..."
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+            />
+            <button className="chat-send-btn" onClick={sendMessage}>
+              Enviar
+            </button>
+          </div>
         </div>
-      </div>
+      )}
       
       <footer>
         <p>YUPI - CANNABIS PARAGUAY 2026</p>
