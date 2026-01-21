@@ -16,6 +16,7 @@ function App() {
   });
   const [cannabisPhrase, setCannabisPhrase] = useState('');
   const [showPhrase, setShowPhrase] = useState(false);
+  const [showSmoke, setShowSmoke] = useState(false);
   const carouselRef = useRef(null);
 
   const phrases = [
@@ -42,7 +43,17 @@ function App() {
         }, 3000);
       }, 8000);
 
-      return () => clearInterval(showPhraseInterval);
+      const showSmokeInterval = setInterval(() => {
+        setShowSmoke(true);
+        setTimeout(() => {
+          setShowSmoke(false);
+        }, 2000);
+      }, 3500);
+
+      return () => {
+        clearInterval(showPhraseInterval);
+        clearInterval(showSmokeInterval);
+      };
     }
   }, [chatOpen]);
 
@@ -395,6 +406,13 @@ function App() {
                 </div>
                 <div className="nose"></div>
               </div>
+              {showSmoke && (
+                <div className="smoke-container">
+                  <div className="smoke smoke-1"></div>
+                  <div className="smoke smoke-2"></div>
+                  <div className="smoke smoke-3"></div>
+                </div>
+              )}
             </div>
           </button>
         </>
